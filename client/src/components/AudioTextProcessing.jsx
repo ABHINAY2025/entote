@@ -9,7 +9,9 @@ ChartJS.register(ArcElement, Tooltip, Legend);
 function UnifiedProcessing() {
   const [file, setFile] = useState(null);
   const [response, setResponse] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);  // State to track loading status
+  const [isLoading, setIsLoading] = useState(false); // State to track loading status
+  const [translatedResponse, setTranslatedResponse] = useState(null); // Store translated response
+  const [isEnglishToTelugu, setIsEnglishToTelugu] = useState(true); // Toggle state for translation direction
 
   const handleFileChange = (e) => {
     setFile(e.target.files[0]);
@@ -19,7 +21,7 @@ function UnifiedProcessing() {
     const formData = new FormData();
     formData.append('file', file);
 
-    setIsLoading(true);  // Start loading animation
+    setIsLoading(true); // Start loading animation
 
     try {
       const res = await axios.post('http://localhost:5000/api1/process_audio', formData, {
@@ -31,7 +33,7 @@ function UnifiedProcessing() {
     } catch (error) {
       console.error('Error processing audio:', error);
     } finally {
-      setIsLoading(false);  // End loading animation
+      setIsLoading(false); // End loading animation
     }
   };
 
@@ -45,7 +47,7 @@ function UnifiedProcessing() {
       'Neutral',
       'Surprise',
       'Disgust',
-      'Love'
+      'Love',
     ];
     const sentimentScores = sentimentLabels.map((label) => sentiments[label.toLowerCase()] || 0);
 
@@ -55,11 +57,40 @@ function UnifiedProcessing() {
         {
           data: sentimentScores,
           backgroundColor: [
-            '#ffcc00', '#ff6666', '#6699ff', '#ff9966', '#cccccc', '#99cc33', '#ff3333', '#ff66cc'
+            '#ffcc00',
+            '#ff6666',
+            '#6699ff',
+            '#ff9966',
+            '#cccccc',
+            '#99cc33',
+            '#ff3333',
+            '#ff66cc',
           ],
         },
       ],
     };
+  };
+
+  // Function to translate transcript and summary
+  const translateText = async () => {
+    if (response && response.transcript && response.summary) {
+      const data = {
+        text1: response.transcript,
+        text2: response.summary,
+        direction: isEnglishToTelugu ? 'en-to-te' : 'te-to-en', // Toggle translation direction
+      };
+
+      setIsLoading(true); // Start loading animation
+
+      try {
+        const res = await axios.post('http://localhost:5000/api2/translate_multiple', data);
+        setTranslatedResponse(res.data); // Set translated response
+      } catch (error) {
+        console.error('Error translating text:', error);
+      } finally {
+        setIsLoading(false); // End loading animation
+      }
+    }
   };
 
   return (
@@ -103,20 +134,31 @@ function UnifiedProcessing() {
             {/* Center: Text response */}
             <div className="col-span-2">
               <h2 className="font-semibold">Response:</h2>
-              {response.transcript && (
+              {translatedResponse ? (
                 <div>
-                  <p><strong>Transcript:</strong> {response.transcript}</p>
+                  <p><strong>{isEnglishToTelugu ? 'Translated Transcript' : 'Translated Transcript (English)'}:</strong> {translatedResponse.translated_text1}</p>
+                  <p><strong>{isEnglishToTelugu ? 'Translated Summary' : 'Translated Summary (English)'}:</strong> {translatedResponse.translated_text2}</p>
                 </div>
-              )}
-              {response.summary && (
-                <div>
-                  <p><strong>Summary:</strong> {response.summary}</p>
-                </div>
-              )}
-              {response.translated_text && (
-                <div>
-                  <p><strong>Translated Text:</strong> {response.translated_text}</p>
-                </div>
+              ) : (
+                <>
+                  {response.transcript && (
+                    <div>
+                      <p><strong>Transcript:</strong> {response.transcript}</p>
+                    </div>
+                  )}
+                  {response.summary && (
+                    <div>
+                      <p><strong>Summary:</strong> {response.summary}</p>
+                    </div>
+                  )}
+                  {/* Translate button */}
+                  <button
+                    onClick={translateText}
+                    className="bg-green-500 text-white py-2 px-4 rounded mt-4"
+                  >
+                    Translate to {isEnglishToTelugu ? 'Telugu' : 'English'}
+                  </button>
+                </>
               )}
             </div>
           </div>

@@ -116,3 +116,37 @@ def translate_keywords():
     except Exception as e:
         logging.error(f"Error during keyword translation: {e}")
         return jsonify({"error": "Could not process keywords"}), 500
+    
+    # Route: Translate Multiple Texts from English to Telugu
+@transform.route('/translate_multiple', methods=['POST'])
+def translate_multiple():
+    data = request.json
+    if not data or not isinstance(data, dict):
+        return jsonify({"error": "Invalid or empty JSON payload"}), 400
+
+    # Extract the two texts from the request body
+    text1 = data.get('text1', '').strip()
+    text2 = data.get('text2', '').strip()
+
+    # Ensure both texts are provided
+    if not text1 or not text2:
+        return jsonify({"error": "Both text1 and text2 must be provided"}), 400
+
+    # Check if the models are initialized
+    if not check_model_initialized():
+        return jsonify({"error": "Model initialization failed"}), 500
+
+    try:
+        # Translate both text1 and text2
+        translated_text1 = translate_to_telugu(text1)
+        translated_text2 = translate_to_telugu(text2)
+
+        # Return both translations in the response
+        return jsonify({
+            "translated_text1": translated_text1,
+            "translated_text2": translated_text2
+        })
+    except Exception as e:
+        logging.error(f"Translation error: {e}")
+        return jsonify({"error": "Translation failed"}), 500
+

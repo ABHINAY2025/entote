@@ -18,7 +18,6 @@ CORS(app)
 nlp = None
 tokenizer = None
 model = None
-    
 
 # Try to initialize the Stanza Telugu model
 try:
@@ -108,7 +107,6 @@ def pos_tagging():
         return jsonify({"error": "Could not fetch POS tags"}), 500
 
 @app.route('/translate_keywords', methods=['POST'])
-
 def translate_keywords():
     """
     Extracts keywords from the input text using TF-IDF and translates them to Telugu.
@@ -144,7 +142,7 @@ def translate_keywords():
             logging.error("No keywords found")
             return jsonify({"error": "No keywords found"}), 400
 
-        # Select the top 10 keywords to ensure variety (not just top 6)
+        # Select the top 6 keywords to ensure variety
         keywords_with_scores = sorted_words[:6]
 
         # Log the extracted keywords and scores for debugging
@@ -163,6 +161,34 @@ def translate_keywords():
     except Exception as e:
         logging.error(f"Error during keyword translation: {e}")
         return jsonify({"error": "Could not process keywords"}), 500
+
+@app.route('/translate_multiple', methods=['POST'])
+def translate_multiple():
+    data = request.json
+    if not data or not isinstance(data, dict):
+        return jsonify({"error": "Invalid or empty JSON payload"}), 400
+
+    text1 = data.get('text1', '').strip()
+    text2 = data.get('text2', '').strip()
+
+    if not text1 or not text2:
+        return jsonify({"error": "Both text1 and text2 must be provided"}), 400
+
+    if not check_model_initialized():
+        return jsonify({"error": "Model initialization failed"}), 500
+
+    try:
+        # Translate both text1 and text2 from English to Telugu using the mBART model
+        translated_text1 = translate_to_telugu(text1)
+        translated_text2 = translate_to_telugu(text2)
+
+        return jsonify({
+            "translated_text1": translated_text1,
+            "translated_text2": translated_text2
+        })
+    except Exception as e:
+        logging.error(f"Translation error: {e}")
+        return jsonify({"error": "Translation failed"}), 500
 
 if __name__ == '__main__':
     app.run(debug=True)

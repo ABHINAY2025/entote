@@ -17,7 +17,7 @@ def load_translation_model(source_lang="en", target_lang="te"):
     return model, tokenizer
 
 # Function to translate text
-def translate_text(text, source_lang="en", target_lang="es"):
+def translate_text(text, source_lang="en", target_lang="te"):
     # Load translation model
     model, tokenizer = load_translation_model(source_lang, target_lang)
 
