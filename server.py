@@ -1,7 +1,7 @@
 from flask import Flask
 from flask_cors import CORS
-from api.process import process  # Import API 1 Blueprint
-from api.transform import transform  # Import API 2 Blueprint
+from backend.process import process  # Import API 1 Blueprint from backend
+from backend.transform import transform  # Import API 2 Blueprint from backend
 
 # Initialize Flask app
 app = Flask(__name__)

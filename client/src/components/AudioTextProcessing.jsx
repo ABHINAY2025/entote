@@ -132,6 +132,7 @@ function UnifiedProcessing() {
             </div>
 
             {/* Center: Text response */}
+            
             <div className="col-span-2">
               <h2 className="font-semibold">Response:</h2>
               {translatedResponse ? (
